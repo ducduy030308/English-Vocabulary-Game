@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<title>Game từ vựng Tiếng Anh - Môi Trường</title>
+<style>
+body {
+    font-family: 'Roboto', sans-serif;
+    background: #f0f4c3;
+    padding: 20px;
+    max-width: 700px;
+    margin: auto;
+}
+h2 {
+    color: #558b2f;
+    text-align: center;
+    text-shadow: 1px 1px 2px #c5e1a5;
+    margin-bottom: 30px;
+}
+.word {
+    font-size: 32px;
+    color: #33691e;
+    text-align: center;
+    margin-bottom: 25px;
+}
+.option {
+    background: #dcedc8;
+    color: #33691e;
+    border: 2px solid #33691e;
+    padding: 14px;
+    margin: 10px 0;
+    border-radius: 15px;
+    cursor: pointer;
+    box-shadow: 2px 2px 6px rgba(0,0,0,0.2);
+    transition: 0.3s;
+}
+.option:hover {
+    background: #c5e1a5;
+    transform: scale(1.05);
+}
+.correct { background-color: #4caf50 !important; color: #fff; }
+.wrong { background-color: #f44336 !important; color: #fff; }
+#result {
+    background: #fff;
+    border-radius: 15px;
+    border: 1px solid #ccc;
+    padding: 20px;
+    box-shadow: 3px 3px 10px rgba(0,0,0,0.2);
+    margin-top: 30px;
+    text-align: center;
+}
+button {
+    background: #8bc34a;
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    padding: 12px 25px;
+    font-size: 18px;
+    cursor: pointer;
+    box-shadow: 2px 2px 5px rgba(0,0,0,0.3);
+    transition: 0.3s;
+    margin-top: 15px;
+}
+button:hover {
+    background: #7cb342;
+    transform: scale(1.05);
+}
+ul { padding-left: 20px; text-align: left; }
+</style>
+</head>
+<body>
+
+<h2>Game luyện từ vựng Tiếng Anh - Môi Trường</h2>
+
+<div id="game">
+    <div class="word" id="word"></div>
+    <div id="options"></div>
+</div>
+
+<div id="result"></div>
+
+<!-- Âm thanh đúng/sai -->
+<audio id="sound-correct" src="https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg"></audio>
+<audio id="sound-wrong" src="https://actions.google.com/sounds/v1/cartoon/cartoon_boing.ogg"></audio>
+
+<script>
+// ======= 1. Danh sách từ vựng =======
+const vocab = [
+    { word: "carbon footprint", correct: "tổng lượng khí nhà kính được tạo ra", choices: ["dùng một lần", "thân thiện với môi trường", "rác thải"] },
+    { word: "leftover", correct: "thức ăn thừa", choices: ["bìa cứng", "dùng nhiều lần", "bãi rác"] },
+    { word: "packaging", correct: "bao bì", choices: ["rửa sạch", "bị ô nhiễm", "phân hủy"] },
+    { word: "reusable", correct: "có thể tái sử dụng nhiều lần", choices: ["dùng một lần", "bị ô nhiễm", "bãi rác"] },
+    { word: "rinse out", correct: "rửa sạch bằng nước", choices: ["dùng một lần", "phân hủy", "bìa cứng"] },
+    { word: "waste", correct: "rác thải", choices: ["thân thiện với môi trường", "có thể tái sử dụng", "dấu chân carbon"] },
+    { word: "single-use", correct: "dùng một lần", choices: ["có thể tái sử dụng", "thân thiện với môi trường", "phân hủy"] },
+    { word: "landfill", correct: "bãi rác", choices: ["thùng ủ phân", "bao bì", "rửa sạch"] },
+    { word: "decompose", correct: "phân hủy tự nhiên", choices: ["đốt", "rửa sạch", "bìa cứng"] },
+    { word: "eco-friendly", correct: "thân thiện với môi trường", choices: ["bị ô nhiễm", "rác thải", "dùng một lần"] },
+    { word: "contaminated", correct: "bị ô nhiễm", choices: ["thân thiện với môi trường", "rác thải", "có thể tái sử dụng"] },
+    { word: "cardboard", correct: "bìa cứng", choices: ["dùng một lần", "rác thải", "bãi rác"] }
+];
+
+let index = 0;
+let wrongList = [];
+
+// ======= 2. Hiển thị câu hỏi =======
+function loadQuestion() {
+    const w = vocab[index];
+    document.getElementById("word").innerText = w.word;
+
+    let answers = [w.correct, ...w.choices];
+    answers.sort(() => Math.random() - 0.5);
+
+    let html = "";
+    answers.forEach(ans => {
+        html += `<div class="option" onclick="checkAnswer(this, '${ans}')">${ans}</div>`;
+    });
+    document.getElementById("options").innerHTML = html;
+}
+
+// ======= 3. Kiểm tra đáp án ngay khi chọn =======
+function checkAnswer(elem, selected) {
+    const w = vocab[index];
+    const options = document.querySelectorAll(".option");
+    const soundCorrect = document.getElementById("sound-correct");
+    const soundWrong = document.getElementById("sound-wrong");
+
+    // Disable tất cả nút sau khi chọn
+    options.forEach(opt => opt.style.pointerEvents = "none");
+
+    if (selected === w.correct) {
+        elem.classList.add("correct");
+        soundCorrect.play();
+    } else {
+        elem.classList.add("wrong");
+        wrongList.push({ word: w.word, answer: w.correct });
+        // Hiển thị đáp án đúng
+        options.forEach(opt => {
+            if (opt.innerText === w.correct) {
+                opt.classList.add("correct");
+            }
+        });
+        soundWrong.play();
+    }
+
+    // Nút câu tiếp theo / xem kết quả
+    const nextBtn = document.createElement("button");
+    nextBtn.innerText = index < vocab.length - 1 ? "Câu tiếp theo" : "Xem kết quả";
+    nextBtn.onclick = () => {
+        index++;
+        if (index >= vocab.length) {
+            showResult();
+        } else {
+            loadQuestion();
+        }
+    };
+    document.getElementById("options").appendChild(nextBtn);
+}
+
+// ======= 4. Hiển thị kết quả cuối =======
+function showResult() {
+    document.getElementById("game").style.display = "none";
+
+    let html = `<h3>Kết quả</h3>`;
+    html += `<p>Bạn trả lời đúng: ${vocab.length - wrongList.length} / ${vocab.length}</p>`;
+
+    if (wrongList.length > 0) {
+        html += "<h4>Các từ bạn sai:</h4><ul>";
+        wrongList.forEach(item => {
+            html += `<li><b>${item.word}</b> → ${item.answer}</li>`;
+        });
+        html += "</ul>";
+    } else {
+        html += "<p>Tuyệt vời! Bạn không sai câu nào.</p>";
+    }
+
+    // Nút chơi lại
+    html += `<button onclick="restartGame()">Chơi lại</button>`;
+
+    document.getElementById("result").innerHTML = html;
+}
+
+// ======= 5. Chơi lại =======
+function restartGame() {
+    index = 0;
+    wrongList = [];
+    document.getElementById("result").innerHTML = "";
+    document.getElementById("game").style.display = "block";
+    loadQuestion();
+}
+
+// ======= 6. Bắt đầu game =======
+loadQuestion();
+</script>
+
+</body>
+</html>
